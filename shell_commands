@@ -1,0 +1,115 @@
+﻿Different ways to run Shell Commands in Ruby
+*******************************************
+
+Ruby provides 6 different ways to perform this task. They are:
+
+  1)Exec
+  2)System
+  3)Backticks (`)
+  4)IO#popen
+  5)Open3#popen3
+  6)Open4#popen4
+
+Exec
+*****
+
+Kernel#exec (or simply exec) replaces the current process by running the given command, which can take one of the following forms:
+
+  exec(commandline)
+  command line string which is passed to the standard shell
+
+  exec(cmdname, arg1, ...)
+  command name and one or more arguments (no shell)
+
+  exec([cmdname, argv0], arg1, ...)
+  command name, argv and zero or more arguments (no shell)
+
+In the first form, the string is taken as a command line that is subject to shell expansion before being executed.
+
+In the second form (exec("command1", "arg1", ...)), the first is taken as a command name and the rest are passed as parameters to command with no shell expansion.
+
+In the third form (exec(["command", "argv0"], "arg1", ...)), starting a two-element array at the beginning of the command, the first element is the command to be executed, and the second argument is used as the argv[0] value, which may show up in process listings.
+
+The major drawback is that you have no knowledge of the success or failure of the command from your Ruby script.
+
+Eg:  
+
+ exec "echo", "*"    # echoes an asterisk
+
+System
+********
+
+The system command operates similarly but the system command runs in a subshell instead of replacing the current process. System gives us a little more information than exec in that it returns true if the command ran successfully and false otherwise.
+	System returns true if the command gives zero exit status, false for non-zero exit status. Returns nil if command execution fails. An error status is available in $?.  System eats up all the exceptions. So the main operation never needs to worry about capturing an exception raised from the child process.
+Eg: 
+	system("ls")                           #=> true
+
+
+Backticks (`)
+***************
+
+Backticks (also called “backquotes”) runs the command in a subshell and returns the standard output from that command. Backtick operation forks the master process and the operation is executed in a new process. Backtick is a blocking operation. The main application waits until the result of  backtick operation completes.  Backtick runs the command via shell. So shell features like string interpolation and wild card can be used.
+
+
+IO#popen
+**********
+
+IO#popen is another way to run a command in a subprocess. popen gives you a bit more control in that the subprocess standard input and standard output are both connected to the IO object.
+
+Open3#popen3
+************
+
+The Ruby standard library includes the class Open3. It’s easy to use and returns stdin, stdout and stderr.
+
+Eg:
+
+require 'open3'
+cmd = 'git push heroku master'
+Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
+  puts "stdout is:" + stdout.read
+  puts "stderr is:" + stderr.read
+end
+
+Output:
+stdout is:
+stderr is:
+-----> Heroku receiving push
+-----> Ruby/Rails app detected
+-----> Installing dependencies using Bundler version 1.2.1
+
+
+Open4#popen4
+*************
+
+Open4#popen4 is a Ruby Gem put together by Ara Howard. It operates similarly to open3 except that we can get the exit status from the program. popen4 returns a process id for the subshell and we can get the exit status from that waiting on that process. 
+
+Eg:
+$ irb
+  >> require "open4" 
+  => true
+  >> pid, stdin, stdout, stderr = Open4::popen4 "false" 
+  => [26327, #<IO:0x6dff24>, #<IO:0x6dfee8>, #<IO:0x6dfe84>]
+  >> $?
+  => nil
+  >> pid
+  => 26327
+  >> ignored, status = Process::waitpid2 pid
+  => [26327, #<Process::Status: pid=26327,exited(1)>]
+  >> status.to_i
+  => 256
+
+
+References
+**************
+
+http://blog.bigbinary.com/2012/10/18/backtick-system-exec-in-ruby.html
+
+http://ruby-doc.org/core/Kernel.html#method-i-exec
+
+http://ruby-doc.org/core/Kernel.html#method-i-system
+
+http://tech.natemurray.com/2007/03/ruby-shell-commands.html
+
+
+
+
