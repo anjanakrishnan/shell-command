@@ -40,21 +40,26 @@ System
 ********
 
 The system command operates similarly but the system command runs in a subshell instead of replacing the current process. System gives us a little more information than exec in that it returns true if the command ran successfully and false otherwise.
-	System returns true if the command gives zero exit status, false for non-zero exit status. Returns nil if command execution fails. An error status is available in $?.  System eats up all the exceptions. So the main operation never needs to worry about capturing an exception raised from the child process.
+  System returns true if the command gives zero exit status, false for non-zero exit status. Returns nil if command execution fails. An error status is available in $?.  System eats up all the exceptions. So the main operation never needs to worry about capturing an exception raised from the child process.
 Eg: 
-	system("ls")                           #=> true
-
+  system("ls")                           #=> true
+  puts $?                                #=> pid 14822 exit 0
 
 Backticks (`)
 ***************
 
-Backticks (also called “backquotes”) runs the command in a subshell and returns the standard output from that command. Backtick operation forks the master process and the operation is executed in a new process. Backtick is a blocking operation. The main application waits until the result of  backtick operation completes.  Backtick runs the command via shell. So shell features like string interpolation and wild card can be used.
+Backticks (also called “backquotes”) runs the command in a subshell and returns the standard output from that command as string. Backtick operation forks the master process and the operation is executed in a new process. Backtick is a blocking operation. The main application waits until the result of  backtick operation completes.  Backtick runs the command via shell. So shell features like string interpolation and wild card can be used.
 
+Eg: 
+    `date`                                #=>"Mon Nov 14 13:32:54 IST 2016\n"
 
 IO#popen
 **********
 
-IO#popen is another way to run a command in a subprocess. popen gives you a bit more control in that the subprocess standard input and standard output are both connected to the IO object.
+IO#popen is another way to run a command in a subprocess. popen gives you a bit more control in that the subprocess standard input and standard output are both connected to the IO object. It returns an object of 'IO' class. You can loop through the output or use map to access individual elements.
+
+Eg:
+    IO.popen("date") { |f| f.gets() }      #=> "Mon Nov 14 13:36:13 IST 2016\n"
 
 Open3#popen3
 ************
@@ -109,7 +114,3 @@ http://ruby-doc.org/core/Kernel.html#method-i-exec
 http://ruby-doc.org/core/Kernel.html#method-i-system
 
 http://tech.natemurray.com/2007/03/ruby-shell-commands.html
-
-
-
-
